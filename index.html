@@ -1146,8 +1146,17 @@ async function callAiApi(topic) {
   document.getElementById('loadingSection').classList.add('active');
   document.getElementById('loadingSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // 線上部署用同源 API；本機 file:// 開啟時用 DEBATE_API_BASE 指定的線上位址
-  const apiBase = (typeof DEBATE_API_BASE !== 'undefined' && DEBATE_API_BASE) ? DEBATE_API_BASE : '';
+  // API 位址自動偵測：
+  // 1) 手動指定 DEBATE_API_BASE 優先；2) Vercel / 本機預覽用同源；
+  // 3) GitHub Pages 等純靜態環境，改用已部署的 Vercel API（CORS 已開放）
+  let apiBase = '';
+  if (typeof DEBATE_API_BASE !== 'undefined' && DEBATE_API_BASE) {
+    apiBase = DEBATE_API_BASE;
+  } else if (!(location.hostname.endsWith('vercel.app') ||
+               location.hostname === 'localhost' ||
+               location.hostname === '127.0.0.1')) {
+    apiBase = 'https://debate-lens-ten.vercel.app';
+  }
 
   try {
     const ctrl = new AbortController();
