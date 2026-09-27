@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563EB'/%3E%3Cstop offset='1' stop-color='%238B5CF6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Crect x='16' y='18' width='12' height='28' rx='2' fill='white' opacity='0.95'/%3E%3Crect x='36' y='18' width='12' height='28' rx='2' fill='white' opacity='0.6'/%3E%3C/svg%3E">
+<title>社會議題辯論拆解儀 | DebateLens</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0F1117;
+  --bg-secondary: #1A1D2E;
+  --bg-card: #1E2235;
+  --bg-input: #252940;
+  --border-color: #2D3250;
+  --border-subtle: #363B58;
+  --text-primary: #E8EAF0;
+  --text-secondary: #9BA1B7;
+  --text-muted: #6B7194;
+  --accent-aff: #0D9488;
+  --accent-aff-light: #14B8A6;
+  --accent-aff-bg: rgba(13, 148, 136, 0.08);
+  --accent-aff-border: rgba(13, 148, 136, 0.25);
+  --accent-neg: #E11D48;
+  --accent-neg-light: #FB7185;
+  --accent-neg-bg: rgba(225, 29, 72, 0.08);
+  --accent-neg-border: rgba(225, 29, 72, 0.25);
+  --accent-blue: #2563EB;
+  --accent-blue-light: #60A5FA;
+  --accent-amber: #F59E0B;
+  --accent-purple: #8B5CF6;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-glow-aff: 0 0 20px rgba(13, 148, 136, 0.15);
+  --shadow-glow-neg: 0 0 20px rgba(225, 29, 72, 0.15);
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(37, 99, 235, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+/* ===== Header ===== */
+.app-header {
+  text-align: center;
+  padding: 48px 0 40px;
+}
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  color: var(--accent-blue-light);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 6px 16px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+}
+
+.header-badge svg { width: 14px; height: 14px; }
+
+.app-title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #E8EAF0 0%, #60A5FA 50%, #A78BFA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.app-subtitle {
+  font-size: clamp(14px, 2vw, 17px);
+  color: var(--text-secondary);
+  font-weight: 400;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== Input Section ===== */
+.input-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-md);
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  font-size: 15px;
+  color: var(--text-primary);
+  outline: none;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.btn-analyze {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 28px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.btn-analyze:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
+}
+
+.btn-analyze:active { transform: translateY(0); }
+.btn-analyze svg { width: 18px; height: 18px; }
+
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.tags-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tag-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 100px;
+  padding: 7px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.tag-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue-light);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+/* ===== Loading ===== */
+.loading-section { display: none; padding: 48px 0; }
+.loading-section.active { display: block; }
+
+.loading-header { text-align: center; margin-bottom: 36px; }
+.spinner-container { display: flex; justify-content: center; margin-bottom: 20px; }
+.spinner {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent-blue);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text { font-size: 16px; color: var(--text-secondary); font-weight: 500; }
+.loading-text .dot-anim::after { content: ''; animation: dots 1.4s steps(4, end) infinite; }
+@keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+
+.skeleton-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.skeleton-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.skeleton-line {
+  background: linear-gradient(90deg, var(--bg-input) 25%, var(--border-subtle) 50%, var(--bg-input) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+  height: 16px; margin-bottom: 14px;
+}
+.skeleton-line:nth-child(1){width:45%;height:20px}
+.skeleton-line:nth-child(2){width:90%}
+.skeleton-line:nth-child(3){width:75%}
+.skeleton-line:nth-child(4){width:85%}
+.skeleton-line:nth-child(5){width:60%}
+.skeleton-line:last-child{margin-bottom:0}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ===== AI Panel ===== */
+.ai-panel { display: none; margin-bottom: 32px; animation: fadeUp 0.4s ease; }
+.ai-panel.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ai-panel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-purple);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(139, 92, 246, 0.08);
+}
+
+.ai-panel-header {
+  background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(139,92,246,0.1));
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ai-panel-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-panel-icon {
+  width: 42px; height: 42px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.ai-panel-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.ai-panel-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+.ai-panel-close {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.ai-panel-close:hover { background: var(--accent-neg-bg); color: var(--accent-neg-light); border-color: var(--accent-neg-border); }
+
+.ai-panel-body { padding: 28px; }
+
+/* Steps */
+.ai-step { margin-bottom: 28px; }
+.ai-step:last-child { margin-bottom: 0; }
+
+.ai-step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ai-step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ai-step-label { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+
+/* Prompt Box */
+.prompt-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.prompt-content {
+  padding: 16px;
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Consolas', 'Monaco', 'Noto Sans TC', monospace;
+}
+
+.prompt-actions {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-copy-prompt {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 10px;
+  color: var(--accent-blue-light);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-copy-prompt:hover { background: rgba(37, 99, 235, 0.1); }
+.btn-copy-prompt.copied { color: var(--accent-aff-light); }
+
+/* AI Service Buttons */
+.ai-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.btn-ai-service {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.btn-ai-service:hover {
+  border-color: var(--accent-blue);
+  background: rgba(37, 99, 235, 0.08);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-ai-service .service-icon { font-size: 18px; }
+
+/* Paste Area */
+.paste-area {
+  width: 100%;
+  min-height: 180px;
+  background: var(--bg-primary);
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  outline: none;
+  resize: vertical;
+  font-family: 'Consolas', 'Monaco', 'Noto Sans TC', monospace;
+  transition: var(--transition);
+}
+
+.paste-area::placeholder { color: var(--text-muted); }
+.paste-area:focus {
+  border-color: var(--accent-purple);
+  border-style: solid;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.ai-step-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-render {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--accent-aff), #0e7a70);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.btn-render:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(13, 148, 136, 0.3); }
+.btn-render:active { transform: translateY(0); }
+
+.btn-template {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.btn-template:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+.parse-error {
+  display: none;
+  background: var(--accent-neg-bg);
+  border: 1px solid var(--accent-neg-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--accent-neg-light);
+  line-height: 1.6;
+}
+
+.parse-error.active { display: block; }
+
+/* ===== Result Section ===== */
+.result-section { display: none; animation: fadeUp 0.5s ease; }
+.result-section.active { display: block; }
+
+.result-topic-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.result-topic-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.result-topic-icon svg { width: 20px; height: 20px; color: #fff; }
+
+.result-topic-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.result-topic-title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+
+.result-source-badge {
+  margin-left: auto;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.result-source-badge.ai {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #A78BFA;
+}
+.result-source-badge.preset {
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: var(--accent-blue-light);
+}
+
+/* ===== Debate Grid ===== */
+.debate-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.side-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+.side-card:hover { transform: translateY(-2px); }
+.side-card.aff { border: 1px solid var(--accent-aff-border); }
+.side-card.aff:hover { box-shadow: var(--shadow-glow-aff); }
+.side-card.neg { border: 1px solid var(--accent-neg-border); }
+.side-card.neg:hover { box-shadow: var(--shadow-glow-neg); }
+
+.card-header {
+  padding: 22px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-side-indicator {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 16px;
+}
+.aff .card-side-indicator {
+  background: var(--accent-aff-bg); color: var(--accent-aff-light); border: 1px solid var(--accent-aff-border);
+}
+.neg .card-side-indicator {
+  background: var(--accent-neg-bg); color: var(--accent-neg-light); border: 1px solid var(--accent-neg-border);
+}
+
+.card-side-title { font-size: 16px; font-weight: 700; }
+.aff .card-side-title { color: var(--accent-aff-light); }
+.neg .card-side-title { color: var(--accent-neg-light); }
+
+.card-body { padding: 0 24px 24px; }
+
+.core-claim { border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; }
+.aff .core-claim { background: var(--accent-aff-bg); border: 1px solid var(--accent-aff-border); }
+.neg .core-claim { background: var(--accent-neg-bg); border: 1px solid var(--accent-neg-border); }
+
+.core-claim-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; margin-bottom: 6px;
+}
+.aff .core-claim-label { color: var(--accent-aff); }
+.neg .core-claim-label { color: var(--accent-neg); }
+
+.core-claim-text { font-size: 15px; font-weight: 600; color: var(--text-primary); line-height: 1.6; }
+
+.arguments-title {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+}
+
+.argument-item { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
+.argument-item:last-child { margin-bottom: 0; }
+
+.arg-number {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+}
+.aff .arg-number { background: var(--accent-aff-bg); color: var(--accent-aff-light); border: 1px solid var(--accent-aff-border); }
+.neg .arg-number { background: var(--accent-neg-bg); color: var(--accent-neg-light); border: 1px solid var(--accent-neg-border); }
+
+.arg-content { flex: 1; }
+.arg-text { font-size: 14px; color: var(--text-primary); margin-bottom: 6px; line-height: 1.6; }
+
+.arg-evidence {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600; padding: 3px 10px;
+  border-radius: 100px; letter-spacing: 0.3px;
+}
+.aff .arg-evidence { background: var(--accent-aff-bg); color: var(--accent-aff-light); border: 1px solid var(--accent-aff-border); }
+.neg .arg-evidence { background: var(--accent-neg-bg); color: var(--accent-neg-light); border: 1px solid var(--accent-neg-border); }
+
+.blindspot-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-color); }
+.blindspot-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 700; color: var(--accent-amber); margin-bottom: 10px;
+}
+.blindspot-title svg { width: 15px; height: 15px; }
+.blindspot-text {
+  font-size: 13px; color: var(--text-secondary); line-height: 1.7;
+  padding-left: 22px; border-left: 2px solid rgba(245, 158, 11, 0.25);
+}
+
+/* ===== Consensus ===== */
+.consensus-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+.consensus-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent-aff), var(--accent-blue), var(--accent-purple), var(--accent-neg));
+}
+
+.consensus-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.consensus-icon {
+  width: 40px; height: 40px; border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(139,92,246,0.15));
+  border: 1px solid rgba(37,99,235,0.2);
+  display: flex; align-items: center; justify-content: center;
+}
+.consensus-icon svg { width: 20px; height: 20px; color: var(--accent-blue-light); }
+.consensus-title { font-size: 17px; font-weight: 700; color: var(--text-primary); }
+.consensus-text { font-size: 14px; color: var(--text-secondary); line-height: 1.8; }
+
+/* ===== Footer ===== */
+.app-footer {
+  text-align: center;
+  padding: 36px 0 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.app-footer .credit { font-weight: 600; color: var(--text-secondary); }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-card);
+  border: 1px solid var(--accent-aff-border);
+  color: var(--accent-aff-light);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .app-container { padding: 0 16px 40px; }
+  .app-header { padding: 32px 0 28px; }
+  .input-section { padding: 20px; }
+  .input-wrapper { flex-direction: column; }
+  .btn-analyze { justify-content: center; }
+  .skeleton-grid, .debate-grid { grid-template-columns: 1fr; }
+  .result-topic-title { font-size: 17px; }
+  .consensus-card { padding: 22px; }
+  .ai-panel-body { padding: 20px; }
+  .ai-panel-header { padding: 16px 20px; }
+  .ai-services-grid { grid-template-columns: 1fr 1fr; }
+  .result-source-badge { display: none; }
+}
+
+@media (max-width: 480px) {
+  .app-title { font-size: 24px; }
+  .tags-row { gap: 8px; }
+  .tag-btn { font-size: 12px; padding: 6px 12px; }
+  .ai-services-grid { grid-template-columns: 1fr; }
+  .ai-step-actions { flex-direction: column; }
+  .btn-render, .btn-template { justify-content: center; }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      AI-POWERED ANALYSIS
+    </div>
+    <h1 class="app-title">社會議題辯論拆解儀 | DebateLens</h1>
+    <p class="app-subtitle">利用結構化思辨，透視公共爭議的正反核心脈絡</p>
+  </header>
+
+  <!-- INPUT -->
+  <section class="input-section">
+    <div class="input-wrapper">
+      <input type="text" class="search-input" id="topicInput"
+        placeholder="請輸入想拆解的社會爭議（例如：高中生全面延後上學、人工智慧輔助教學的利與弊...）">
+      <button class="btn-analyze" id="btnAnalyze" onclick="handleAnalyze()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        開始深度拆解
+      </button>
+    </div>
+    <div class="tags-row">
+      <span class="tags-label">🔥 熱門議題：</span>
+      <button class="tag-btn" onclick="selectTag(this)">高中生延後上學至 8:30</button>
+      <button class="tag-btn" onclick="selectTag(this)">大學應全面取消必修體育</button>
+      <button class="tag-btn" onclick="selectTag(this)">全面推行電子教科書</button>
+    </div>
+  </section>
+
+  <!-- LOADING -->
+  <section class="loading-section" id="loadingSection">
+    <div class="loading-header">
+      <div class="spinner-container"><div class="spinner"></div></div>
+      <p class="loading-text">AI 思辨分析中<span class="dot-anim"></span></p>
+    </div>
+    <div class="skeleton-grid">
+      <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+      <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div><div class="skeleton-line"></div></div>
+    </div>
+  </section>
+
+  <!-- AI PANEL -->
+  <section class="ai-panel" id="aiPanel">
+    <div class="ai-panel-card">
+      <div class="ai-panel-header">
+        <div class="ai-panel-title-group">
+          <div class="ai-panel-icon">🤖</div>
+          <div>
+            <div class="ai-panel-title">AI 深度分析模式</div>
+            <div class="ai-panel-desc">備用模式：自動分析失敗時，可複製提示詞 → 貼到免費 AI → 貼回結果</div>
+          </div>
+        </div>
+        <button class="ai-panel-close" onclick="closeAiPanel()" title="關閉">✕</button>
+      </div>
+      <div class="ai-panel-body">
+        <!-- Step 1 -->
+        <div class="ai-step">
+          <div class="ai-step-header">
+            <div class="ai-step-num">1</div>
+            <div class="ai-step-label">複製以下提示詞</div>
+          </div>
+          <div class="prompt-box">
+            <div class="prompt-content" id="promptContent"></div>
+            <div class="prompt-actions">
+              <button class="btn-copy-prompt" id="btnCopy" onclick="copyPrompt()">
+                📋 一鍵複製提示詞
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="ai-step">
+          <div class="ai-step-header">
+            <div class="ai-step-num">2</div>
+            <div class="ai-step-label">打開任一免費 AI，貼上提示詞並送出</div>
+          </div>
+          <div class="ai-services-grid">
+            <a class="btn-ai-service" href="https://gemini.google.com/app" target="_blank" rel="noopener">
+              <span class="service-icon">✦</span> Google Gemini
+            </a>
+            <a class="btn-ai-service" href="https://chatgpt.com/" target="_blank" rel="noopener">
+              <span class="service-icon">◐</span> ChatGPT
+            </a>
+            <a class="btn-ai-service" href="https://kimi.moonshot.cn/" target="_blank" rel="noopener">
+              <span class="service-icon">🌙</span> Kimi
+            </a>
+            <a class="btn-ai-service" href="https://www.perplexity.ai/" target="_blank" rel="noopener">
+              <span class="service-icon">🔍</span> Perplexity
+            </a>
+            <a class="btn-ai-service" href="https://poe.com/" target="_blank" rel="noopener">
+              <span class="service-icon">⚡</span> Poe
+            </a>
+            <a class="btn-ai-service" href="https://copilot.microsoft.com/" target="_blank" rel="noopener">
+              <span class="service-icon">🪟</span> Copilot
+            </a>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="ai-step">
+          <div class="ai-step-header">
+            <div class="ai-step-num">3</div>
+            <div class="ai-step-label">將 AI 回覆的 JSON 結果貼在下方</div>
+          </div>
+          <textarea class="paste-area" id="pasteArea" placeholder="將 AI 回覆的完整內容貼在這裡...&#10;&#10;（系統會自動從文字中提取 JSON 資料並渲染成精美卡片）"></textarea>
+          <div class="parse-error" id="parseError"></div>
+          <div class="ai-step-actions">
+            <button class="btn-render" onclick="renderFromPaste()">
+              🎯 渲染分析結果
+            </button>
+            <button class="btn-template" onclick="useTemplate()">
+              ⚡ 跳過，使用快速模板
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="result-section" id="resultSection">
+    <div class="result-topic-bar">
+      <div class="result-topic-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <div>
+        <div class="result-topic-label">議題分析報告</div>
+        <div class="result-topic-title" id="resultTopicTitle"></div>
+      </div>
+      <span class="result-source-badge" id="sourceBadge"></span>
+    </div>
+
+    <div class="debate-grid">
+      <div class="side-card aff">
+        <div class="card-header">
+          <div class="card-side-indicator">正</div>
+          <div class="card-side-title">正方論點 Affirmative</div>
+        </div>
+        <div class="card-body" id="affBody"></div>
+      </div>
+      <div class="side-card neg">
+        <div class="card-header">
+          <div class="card-side-indicator">反</div>
+          <div class="card-side-title">反方論點 Negative</div>
+        </div>
+        <div class="card-body" id="negBody"></div>
+      </div>
+    </div>
+
+    <div class="consensus-card">
+      <div class="consensus-header">
+        <div class="consensus-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 12l3 3 5-5"/></svg>
+        </div>
+        <div class="consensus-title">💡 思辨共識結語</div>
+      </div>
+      <div class="consensus-text" id="consensusText"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <p>DebateLens — 社會議題辯論拆解儀 &nbsp;|&nbsp; <span class="credit">林宸嘉 製</span></p>
+    <p style="margin-top:4px;font-size:12px;color:var(--text-muted);">本工具僅提供結構化思辨參考，不代表任何立場。</p>
+  </footer>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== PRESET DATA ========== */
+const presetData = {
+  "高中生延後上學至 8:30": {
+    affirmative: {
+      coreClaim: "延後至 8:30 上學能有效改善青少年睡眠不足問題，從生理與心理層面提升學習品質與校園安全。",
+      arguments: [
+        { text: "美國兒科學會（AAP）與國內睡眠醫學研究均指出，青少年生理時鐘自然延後，理想入睡時間為 23:00 後，過早到校導致慢性睡眠債，直接損害專注力與記憶鞏固效果。", evidence: "醫學研究數據" },
+        { text: "加州 2019 年實施延後上學法案（SB 328）後，參與學校學生出勤率提升 4.3%、遲到率下降顯著，學業成績平均提升一個等第，顯示政策具有可複製的正面效果。", evidence: "國際政策實證" },
+        { text: "延後上學可降低學生因疲勞騎車上學的交通事故風險，並減輕家長早起接送的時間壓力，有助於提升家庭生活品質。", evidence: "公共安全統計" }
+      ],
+      blindspot: "忽略雙薪家庭接送困難、補習文化可能將省下的時間再度壓縮，且放學時間相應延後可能擠壓課外活動與社團發展時間。"
+    },
+    negative: {
+      coreClaim: "全面延後上學看似合理，但忽視了教育體制、家庭結構與社會運作的系統性連動效應，可能製造更多問題。",
+      arguments: [
+        { text: "台灣雙薪家庭比例高達六成以上，家長多數需於 8:00 前抵達工作崗位。延後上學將導致國高中生無人監管的「空窗期」，形成安全與紀律管理的新風險。", evidence: "社會結構分析" },
+        { text: "放學時間同步延後將壓縮補習、社團、體育訓練等課後時間，在升學壓力未減的現實下，學生實際就寢時間恐怕不會提前，睡眠改善效果被抵消。", evidence: "升學制度現況" },
+        { text: "偏鄉與通勤學生依賴固定公車班次，全面延後上學恐導致交通接駁斷裂，加劇城鄉教育資源不平等。", evidence: "城鄉差距研究" }
+      ],
+      blindspot: "可能低估了學生與家庭的適應彈性，且過度聚焦既有體制限制而忽略了政策漸進推動與配套措施的可能性。"
+    },
+    consensus: "雙方皆認同青少年睡眠健康的重要性，爭議核心在於配套措施的完備程度。較具建設性的方向是：(1) 採分區、分階段試辦而非「一刀切」全面實施；(2) 同步調整課後輔導與交通配套；(3) 推動升學制度改革以真正釋放學生時間。唯有系統性配套到位，延後上學才能從「看起來好」變成「真的有效」。"
+  },
+  "大學應全面取消必修體育": {
+    affirmative: {
+      coreClaim: "大學體育應由必修轉為選修，尊重成年學生的自主學習權，讓運動回歸內在動機而非外在強制。",
+      arguments: [
+        { text: "大學生為法定成年人，具備自主管理身心健康的權利與能力。強制修習體育違背高等教育「自由選課、自主學習」的核心精神，與國際頂尖大學（如 MIT、Oxford）的作法背離。", evidence: "教育自主權理論" },
+        { text: "現行體育必修常因師資、場地不足而品質參差，許多學生僅為「拿學分而被動出席」，無法培養真正的運動習慣。將資源轉投於多元選修與校園運動設施開放，效益更高。", evidence: "教學品質調查" },
+        { text: "對於身心障礙或慢性疾病學生，強制體育課程的適應性不足，常造成額外壓力甚至身體傷害風險，改為選修可提供更友善的學習環境。", evidence: "特殊教育需求" }
+      ],
+      blindspot: "高估了多數大學生的運動自律能力，取消必修後校園運動人口可能斷崖式下降，長期影響國民體適能水準。"
+    },
+    negative: {
+      coreClaim: "必修體育是高等教育全人培養不可或缺的一環，取消將導致學生健康指標惡化與運動文化斷層。",
+      arguments: [
+        { text: "教育部體適能調查顯示，大學生體適能已呈逐年下降趨勢。必修體育是確保學生維持最低運動量的制度性保障，一旦取消，久坐與肥胖問題將進一步惡化。", evidence: "體適能統計數據" },
+        { text: "體育課不只是運動，更是團隊合作、抗壓能力與紀律培養的重要場域。許多企業在徵才時重視的「軟實力」，正是透過體育活動所鍛鍊。", evidence: "全人教育理念" },
+        { text: "日本、韓國等亞洲國家的大學仍普遍保留體育必修，且將其與心理健康促進結合，效果正面。全面取消恐使台灣成為區域中的健康政策退步案例。", evidence: "亞洲政策比較" }
+      ],
+      blindspot: "可能過度依賴制度強制而非提升課程吸引力，若必修體育本身品質低落，保留制度只是維持「形式上的運動」而非真正的健康促進。"
+    },
+    consensus: "雙方的交集在於：大學體育課程的「品質」比「是否必修」更為關鍵。折衷建議包括：(1) 維持最低體育學分要求但大幅擴展選項（瑜伽、攀岩、電競體適能等）；(2) 引入「運動護照」制度，讓校隊參與、自主健身等多元運動形式皆可抵免學分；(3) 加強運動醫學與心理健康的跨領域結合，讓體育課從「被迫流汗」進化為「主動投資健康」。"
+  },
+  "全面推行電子教科書": {
+    affirmative: {
+      coreClaim: "全面採用電子教科書是數位時代教育轉型的必然趨勢，能降低成本、促進互動學習並實現環境永續。",
+      arguments: [
+        { text: "電子教科書支援影音嵌入、即時測驗、AI 適性推薦等互動功能，可針對不同學習速度的學生提供差異化內容，提升學習成效與參與度。", evidence: "教育科技研究" },
+        { text: "台灣每年消耗數千萬冊紙本教科書，全面電子化可大幅減少紙張消耗與印刷碳排放，符合 2050 淨零排放的國家政策目標。", evidence: "環境永續數據" },
+        { text: "電子教科書的更新成本極低，可即時修正錯誤、納入最新資訊，解決紙本教科書「出版即過時」的結構性問題，確保學生獲得最新知識。", evidence: "內容時效性分析" }
+      ],
+      blindspot: "忽略了長時間螢幕閱讀對視力的影響、偏鄉數位基礎建設不足的現實，以及紙本閱讀在深度理解與記憶鞏固上可能具有的認知優勢。"
+    },
+    negative: {
+      coreClaim: "全面廢除紙本教科書過於躁進，將加劇數位落差、損害閱讀深度，且忽視了紙本媒材不可替代的教育價值。",
+      arguments: [
+        { text: "國內仍有約 12% 家庭缺乏穩定網路或足夠的數位設備，全面推行電子教科書將使經濟弱勢學生陷入「有書讀不了」的困境，擴大教育不平等。", evidence: "數位落差統計" },
+        { text: "挪威、瑞典近年研究發現，紙本閱讀在深度理解、長期記憶與批判思考能力上顯著優於螢幕閱讀，瑞典甚至已開始「回歸紙本」政策。", evidence: "認知科學研究" },
+        { text: "學生使用平板上課時的分心率（社群媒體、遊戲）顯著高於紙本環境，教師的課堂管理負擔大幅增加，教學效率反而可能下降。", evidence: "課堂行為研究" }
+      ],
+      blindspot: "可能過度浪漫化紙本教育而忽視數位素養培養的急迫性，且未充分考慮隨技術進步（如電子紙、護眼模式）螢幕閱讀體驗持續改善的事實。"
+    },
+    consensus: "正反雙方皆同意科技應服務於教育而非取代教育本質。務實的政策建議是：(1) 採「雙軌並行」而非全面替換——核心科目保留紙本選項，輔助教材與練習優先數位化；(2) 政府先完善偏鄉數位基礎建設與設備補助，消除硬體門檻；(3) 投資開發兼顧深度閱讀與互動功能的電子紙教材，結合兩者優勢；(4) 建立「螢幕使用時間」規範，搭配護眼與專注力訓練課程。"
+  }
+};
+
+/* ========== DYNAMIC TEMPLATE (FALLBACK) ========== */
+function generateDynamic(topic) {
+  return {
+    affirmative: {
+      coreClaim: `支持「${topic}」的一方認為，此項政策或主張能夠回應當前社會的迫切需求，透過制度革新推動正向改變，提升整體公共福祉與社會效率。`,
+      arguments: [
+        { text: `從效益角度而言，推行「${topic}」可解決現行制度中長期累積的結構性問題，相關領域的國際經驗與學術研究已提供初步正面證據，支持其可行性與效果。`, evidence: "效益分析" },
+        { text: "從權利與公平面切入，此主張有助於保障相關群體的基本權益，縮小既有的資源分配不均或制度性歧視，促進更具包容性的社會環境。", evidence: "公平正義論述" },
+        { text: "從長期發展觀點來看，及早推動變革可搶佔先機、建立制度優勢，延遲行動的社會成本將隨時間推移而持續攀升。", evidence: "前瞻成本評估" }
+      ],
+      blindspot: "正方論述可能過度理想化政策效果，忽略執行層面的配套難度、社會文化慣性的阻力，以及轉型過程中可能產生的非預期副作用。"
+    },
+    negative: {
+      coreClaim: `反對「${topic}」的一方主張，在現有條件尚未成熟的情況下貿然推行，可能引發系統性風險、加劇社會分歧，甚至產生比問題本身更嚴重的後果。`,
+      arguments: [
+        { text: `現行體制雖非完美，但已建立穩定的運作機制與社會共識。貿然改變「${topic}」的現狀，可能破壞既有平衡，造成利害關係人的實質損害。`, evidence: "穩定性分析" },
+        { text: "從執行面觀察，此項主張所需的配套資源（財政、人力、基礎建設）遠超目前可動用範圍，在條件不備下強行推動恐淪為「政策空轉」。", evidence: "資源可行性評估" },
+        { text: "相關的國際案例顯示，類似政策在不同社會脈絡下的成效差異極大，直接移植可能因文化、制度環境差異而效果不彰甚至適得其反。", evidence: "比較政策研究" }
+      ],
+      blindspot: "反方論述可能因過度強調風險與穩定性而陷入「維持現狀偏誤」，忽略了不作為本身同樣具有機會成本，且現行制度的問題會隨時間惡化。"
+    },
+    consensus: `圍繞「${topic}」的辯論，雙方的共識基礎在於：任何重大社會變革都需要嚴謹的實證基礎與充分的配套措施。建議的折衷路徑包括：(1) 先以小規模試點驗證效果，避免「一步到位」的全面推行；(2) 建立跨領域的政策評估機制，持續追蹤正負面影響；(3) 確保受影響群體的充分參與和知情同意，以強化政策的社會正當性。`
+  };
+}
+
+/* ========== PROMPT GENERATOR ========== */
+function buildPrompt(topic) {
+  return `你是一位社會議題辯論分析專家。請針對以下議題進行結構化的正反方論點拆解分析。
+
+議題：「${topic}」
+
+請嚴格按照以下 JSON 格式回覆，不要加任何 markdown 標記或額外文字，只回覆純 JSON：
+
+{
+  "affirmative": {
+    "coreClaim": "正方核心主張（2-3句話，清楚表達立場）",
+    "arguments": [
+      {"text": "第一個論證的詳細說明（包含具體事實、數據或案例，約50-80字）", "evidence": "證據類型標籤（如：學術研究、統計數據、國際實例等，4-6字）"},
+      {"text": "第二個論證的詳細說明", "evidence": "證據類型標籤"},
+      {"text": "第三個論證的詳細說明", "evidence": "證據類型標籤"}
+    ],
+    "blindspot": "正方論述的潛在挑戰與盲點（1-2句話）"
+  },
+  "negative": {
+    "coreClaim": "反方核心主張（2-3句話，清楚表達立場）",
+    "arguments": [
+      {"text": "第一個論證的詳細說明（包含具體事實、數據或案例，約50-80字）", "evidence": "證據類型標籤"},
+      {"text": "第二個論證的詳細說明", "evidence": "證據類型標籤"},
+      {"text": "第三個論證的詳細說明", "evidence": "證據類型標籤"}
+    ],
+    "blindspot": "反方論述的潛在挑戰與盲點（1-2句話）"
+  },
+  "consensus": "思辨共識結語：總結雙方可能的交集、政策折衷建議與務實行動方向（3-5句話）"
+}`;
+}
+
+/* ========== STATE ========== */
+let currentTopic = '';
+
+/* ========== UI HELPERS ========== */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function hideAll() {
+  document.getElementById('loadingSection').classList.remove('active');
+  document.getElementById('aiPanel').classList.remove('active');
+  document.getElementById('resultSection').classList.remove('active');
+}
+
+/* ========== RENDER ========== */
+function renderSide(containerId, data) {
+  const el = document.getElementById(containerId);
+  let argsHTML = '';
+  data.arguments.forEach((arg, i) => {
+    argsHTML += `
+      <div class="argument-item">
+        <div class="arg-number">${i + 1}</div>
+        <div class="arg-content">
+          <div class="arg-text">${arg.text}</div>
+          <span class="arg-evidence">📎 ${arg.evidence}</span>
+        </div>
+      </div>`;
+  });
+  el.innerHTML = `
+    <div class="core-claim">
+      <div class="core-claim-label">核心主張</div>
+      <div class="core-claim-text">${data.coreClaim}</div>
+    </div>
+    <div class="arguments-title">三大論證依據</div>
+    ${argsHTML}
+    <div class="blindspot-section">
+      <div class="blindspot-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        潛在挑戰 / 盲點
+      </div>
+      <div class="blindspot-text">${data.blindspot}</div>
+    </div>`;
+}
+
+function showResult(topic, data, source) {
+  document.getElementById('resultTopicTitle').textContent = topic;
+  renderSide('affBody', data.affirmative);
+  renderSide('negBody', data.negative);
+  document.getElementById('consensusText').textContent = data.consensus;
+
+  const badge = document.getElementById('sourceBadge');
+  if (source === 'ai') {
+    badge.className = 'result-source-badge ai';
+    badge.textContent = '🤖 AI 生成';
+  } else if (source === 'template') {
+    badge.className = 'result-source-badge preset';
+    badge.textContent = '⚡ 快速模板';
+  } else {
+    badge.className = 'result-source-badge preset';
+    badge.textContent = '📚 內建資料';
+  }
+
+  hideAll();
+  document.getElementById('resultSection').classList.add('active');
+  setTimeout(() => {
+    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+/* ========== MAIN HANDLERS ========== */
+function handleAnalyze() {
+  const input = document.getElementById('topicInput');
+  const topic = input.value.trim();
+  if (!topic) {
+    input.focus();
+    input.style.borderColor = 'var(--accent-neg)';
+    input.style.boxShadow = '0 0 0 3px rgba(225,29,72,0.15)';
+    setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 1200);
+    return;
+  }
+
+  currentTopic = topic;
+
+  // Check preset
+  if (presetData[topic]) {
+    hideAll();
+    document.getElementById('loadingSection').classList.add('active');
+    document.getElementById('loadingSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const delay = 1000 + Math.random() * 500;
+    setTimeout(() => showResult(topic, presetData[topic], 'preset'), delay);
+    return;
+  }
+
+  // Custom topic → 直接呼叫 AI API
+  callAiApi(topic);
+}
+
+/* ========== AI API CALL ========== */
+async function callAiApi(topic) {
+  hideAll();
+  document.getElementById('loadingSection').classList.add('active');
+  document.getElementById('loadingSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // 線上部署用同源 API；本機 file:// 開啟時用 DEBATE_API_BASE 指定的線上位址
+  const apiBase = (typeof DEBATE_API_BASE !== 'undefined' && DEBATE_API_BASE) ? DEBATE_API_BASE : '';
+
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 45000);
+    const res = await fetch(apiBase + '/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: topic }),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+
+    if (res.ok && data && data.ok && data.result) {
+      showResult(topic, data.result, 'ai');
+      return;
+    }
+    throw new Error((data && data.error) || ('AI 回應異常（' + res.status + '）'));
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? 'AI 分析逾時，請稍後重試' : e.message;
+    console.error('AI API error:', e);
+    showManualPanel(topic, msg);
+  }
+}
+
+function showManualPanel(topic, errorMsg) {
+  hideAll();
+  const prompt = buildPrompt(topic);
+  document.getElementById('promptContent').textContent = prompt;
+  document.getElementById('pasteArea').value = '';
+  document.getElementById('parseError').classList.remove('active');
+  document.getElementById('btnCopy').classList.remove('copied');
+  document.getElementById('btnCopy').innerHTML = '📋 一鍵複製提示詞';
+  document.getElementById('aiPanel').classList.add('active');
+  if (errorMsg) showToast('⚠️ 自動分析失敗：' + errorMsg + '，可改用下方手動模式');
+  setTimeout(() => {
+    document.getElementById('aiPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+function selectTag(btn) {
+  const input = document.getElementById('topicInput');
+  input.value = btn.textContent;
+  handleAnalyze();
+}
+
+function closeAiPanel() {
+  document.getElementById('aiPanel').classList.remove('active');
+}
+
+/* ========== COPY PROMPT ========== */
+function copyPrompt() {
+  const text = document.getElementById('promptContent').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btnCopy');
+    btn.classList.add('copied');
+    btn.innerHTML = '✅ 已複製到剪貼簿！';
+    showToast('✅ 提示詞已複製，請貼到任一 AI 服務');
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '📋 一鍵複製提示詞';
+    }, 3000);
+  }).catch(() => {
+    // Fallback for older browsers / file:// protocol
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      const btn = document.getElementById('btnCopy');
+      btn.classList.add('copied');
+      btn.innerHTML = '✅ 已複製到剪貼簿！';
+      showToast('✅ 提示詞已複製，請貼到任一 AI 服務');
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '📋 一鍵複製提示詞';
+      }, 3000);
+    } catch(e) {
+      showToast('⚠️ 複製失敗，請手動選取複製');
+    }
+    document.body.removeChild(ta);
+  });
+}
+
+/* ========== PARSE AI RESPONSE ========== */
+function extractJSON(text) {
+  // Try parsing directly
+  try {
+    return JSON.parse(text.trim());
+  } catch(e) {}
+
+  // Try extracting from markdown code block
+  const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+  if (codeBlockMatch) {
+    try {
+      return JSON.parse(codeBlockMatch[1].trim());
+    } catch(e) {}
+  }
+
+  // Try finding JSON object pattern
+  const jsonMatch = text.match(/\{[\s\S]*"affirmative"[\s\S]*"negative"[\s\S]*"consensus"[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch(e) {
+      // Try fixing common issues
+      let fixed = jsonMatch[0]
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*]/g, ']');
+      try {
+        return JSON.parse(fixed);
+      } catch(e2) {}
+    }
+  }
+
+  // Try finding any valid JSON object
+  let depth = 0;
+  let start = -1;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (text[i] === '}') {
+      depth--;
+      if (depth === 0 && start >= 0) {
+        try {
+          const candidate = JSON.parse(text.substring(start, i + 1));
+          if (candidate.affirmative && candidate.negative) return candidate;
+        } catch(e) {}
+      }
+    }
+  }
+
+  return null;
+}
+
+function validateData(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (!data.affirmative || !data.negative) return false;
+  if (!data.affirmative.coreClaim || !data.negative.coreClaim) return false;
+  if (!Array.isArray(data.affirmative.arguments) || !Array.isArray(data.negative.arguments)) return false;
+  if (data.affirmative.arguments.length < 1 || data.negative.arguments.length < 1) return false;
+  return true;
+}
+
+function renderFromPaste() {
+  const text = document.getElementById('pasteArea').value.trim();
+  const errEl = document.getElementById('parseError');
+
+  if (!text) {
+    errEl.innerHTML = '⚠️ 請先貼上 AI 的回覆內容。';
+    errEl.classList.add('active');
+    return;
+  }
+
+  const data = extractJSON(text);
+
+  if (!data || !validateData(data)) {
+    errEl.innerHTML = `⚠️ <strong>無法解析 AI 回覆</strong><br>
+      請確認 AI 回覆中包含完整的 JSON 格式資料。如果 AI 沒有回覆 JSON，請重新貼上提示詞並要求 AI「只回覆 JSON，不要加其他文字」。<br><br>
+      <strong>或者點擊「⚡ 跳過，使用快速模板」使用內建模板生成結果。</strong>`;
+    errEl.classList.add('active');
+    return;
+  }
+
+  errEl.classList.remove('active');
+
+  // Fill in missing fields gracefully
+  if (!data.consensus) data.consensus = '雙方各有合理關切，建議透過漸進式試點與充分社會對話，尋找兼顧各方利益的平衡方案。';
+  if (!data.affirmative.blindspot) data.affirmative.blindspot = '正方論述仍需更多實證支持與配套措施考量。';
+  if (!data.negative.blindspot) data.negative.blindspot = '反方論述仍需更多實證支持與配套措施考量。';
+
+  // Ensure evidence fields
+  [data.affirmative, data.negative].forEach(side => {
+    side.arguments.forEach(arg => {
+      if (!arg.evidence) arg.evidence = '論證依據';
+    });
+  });
+
+  showResult(currentTopic, data, 'ai');
+  showToast('🎯 AI 分析結果已渲染完成');
+}
+
+function useTemplate() {
+  if (!currentTopic) return;
+  hideAll();
+  document.getElementById('loadingSection').classList.add('active');
+  setTimeout(() => {
+    showResult(currentTopic, generateDynamic(currentTopic), 'template');
+  }, 800);
+}
+
+// Enter key
+document.getElementById('topicInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleAnalyze();
+});
+</script>
+
+</body>
+</html>
