@@ -127,7 +127,7 @@ export default async function handler(req) {
       body: JSON.stringify({
         model: model,
         temperature: 0.5,
-        max_tokens: 2500,
+        max_tokens: 1500,
         messages: [
           { role: 'system', content: SYS_PROMPT },
           { role: 'user', content: buildUserPrompt(topic) }
@@ -137,6 +137,16 @@ export default async function handler(req) {
 
     if (!llmRes.ok) {
       const errText = await llmRes.text().catch(() => '');
+      // 免費額度限流：給明確、可行動的提示
+      if (llmRes.status === 429) {
+        const retry = llmRes.headers.get('retry-after');
+        const wait = retry ? (Math.max(5, parseInt(retry, 10) || 60)) : 60;
+        return json({
+          error: '免費 AI 額度這分鐘已用滿，請等約 ' + wait + ' 秒再試（或改用下方手動模式）',
+          rateLimited: true,
+          retryAfter: wait
+        }, 429);
+      }
       return json({ error: 'AI 服務回應錯誤（' + llmRes.status + '）：' + errText.slice(0, 200) }, 502);
     }
 
